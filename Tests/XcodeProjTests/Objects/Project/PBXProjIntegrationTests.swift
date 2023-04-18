@@ -14,14 +14,16 @@ final class PBXProjIntegrationTests: XCTestCase {
         }
     }
 
-    func test_write() {
-        testWrite(from: fixturePath(),
-                  initModel: { path -> PBXProj? in
-                      let data = try! Data(contentsOf: path.url)
-                      let decoder = XcodeprojPropertyListDecoder()
-                      return try? decoder.decode(PBXProj.self, from: data)
-                  },
-                  modify: { $0 })
+    func test_write() async {
+        await testWrite(
+            from: fixturePath(),
+            initModel: { path -> PBXProj? in
+                let data = try! Data(contentsOf: path.url)
+                let decoder = XcodeprojPropertyListDecoder()
+                return try? decoder.decode(PBXProj.self, from: data)
+            },
+            modify: { $0 }
+        )
     }
 
     func test_write_produces_no_diff() throws {

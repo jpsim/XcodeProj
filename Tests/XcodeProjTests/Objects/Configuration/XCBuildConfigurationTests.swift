@@ -88,7 +88,7 @@ final class XCBuildConfigurationTests: XCTestCase {
     private func testDictionary() -> [String: Any] {
         [
             "baseConfigurationReference": "baseConfigurationReference",
-            "buildSettings": [:],
+            "buildSettings": [:] as [AnyHashable: Any],
             "name": "name",
             "reference": "reference",
         ]

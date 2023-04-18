@@ -9,16 +9,20 @@ final class XCSchemeIntegrationTests: XCTestCase {
         assert(scheme: subject)
     }
 
-    func test_write_iosScheme() {
-        testWrite(from: iosSchemePath,
-                  initModel: { try? XCScheme(path: $0) },
-                  modify: { $0 },
-                  assertion: { assert(scheme: $1) })
+    func test_write_iosScheme() async {
+        await testWrite(
+            from: iosSchemePath,
+            initModel: { try? XCScheme(path: $0) },
+            modify: { $0 },
+            assertion: { assert(scheme: $1) }
+        )
     }
 
-    func test_read_write_produces_no_diff() throws {
-        try testReadWriteProducesNoDiff(from: iosSchemePath,
-                                        initModel: XCScheme.init(path:))
+    func test_read_write_produces_no_diff() async throws {
+        try await testReadWriteProducesNoDiff(
+            from: iosSchemePath,
+            initModel: XCScheme.init(path:)
+        )
     }
 
     func test_read_runnableWithoutBuildableReferenceScheme() {
@@ -42,11 +46,13 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertEqual(remoteRunnable.remotePath, "/var/containers/Bundle/Application/018F0933-05E8-4359-9955-39E0523C4246/Ava.app")
     }
 
-    func test_write_runnableWithoutBuildableReferenceScheme() {
-        testWrite(from: runnableWithoutBuildableReferenceSchemePath,
-                  initModel: { try? XCScheme(path: $0) },
-                  modify: { $0 },
-                  assertion: { assert(runnableWithoutBuildableReferenceScheme: $1) })
+    func test_write_runnableWithoutBuildableReferenceScheme() async {
+        await testWrite(
+            from: runnableWithoutBuildableReferenceSchemePath,
+            initModel: { try? XCScheme(path: $0) },
+            modify: { $0 },
+            assertion: { assert(runnableWithoutBuildableReferenceScheme: $1) }
+        )
     }
 
     func test_read_minimalScheme() {
@@ -58,11 +64,13 @@ final class XCSchemeIntegrationTests: XCTestCase {
         }
     }
 
-    func test_write_minimalScheme() {
-        testWrite(from: minimalSchemePath,
-                  initModel: { try? XCScheme(path: $0) },
-                  modify: { $0 },
-                  assertion: { assert(minimalScheme: $1) })
+    func test_write_minimalScheme() async {
+        await testWrite(
+            from: minimalSchemePath,
+            initModel: { try? XCScheme(path: $0) },
+            modify: { $0 },
+            assertion: { assert(minimalScheme: $1) }
+        )
     }
 
     func test_write_testableReferenceDefaultAttributesValuesAreOmitted() {

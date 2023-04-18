@@ -7,8 +7,8 @@ func testWrite<T: Writable & Equatable>(file _: StaticString = #file,
                                         line _: UInt = #line,
                                         from path: Path,
                                         initModel: (Path) -> T?,
-                                        modify: (T) -> T) {
-    testWrite(from: path, initModel: initModel, modify: modify, assertion: { XCTAssertEqual($0, $1) })
+                                        modify: (T) -> T) async {
+    await testWrite(from: path, initModel: initModel, modify: modify, assertion: { XCTAssertEqual($0, $1) })
 }
 
 func testWrite<T: Writable>(file: StaticString = #file,
@@ -16,7 +16,7 @@ func testWrite<T: Writable>(file: StaticString = #file,
                             from path: Path,
                             initModel: (Path) -> T?,
                             modify: (T) -> T,
-                            assertion: (_ before: T, _ after: T) -> Void) {
+                            assertion: (_ before: T, _ after: T) -> Void) async {
     let copyPath = path.parent() + "copy.\(path.extension!)"
     try? copyPath.delete()
     try? path.copy(copyPath)
@@ -25,7 +25,7 @@ func testWrite<T: Writable>(file: StaticString = #file,
     if let got = got {
         let modified = modify(got)
         do {
-            try modified.write(path: copyPath, override: true)
+            try await modified.write(path: copyPath, override: true)
             let gotAfterWriting = initModel(copyPath)
             XCTAssertNotNil(gotAfterWriting, file: file, line: line)
             if let gotAfterWriting = gotAfterWriting {
@@ -41,7 +41,7 @@ func testWrite<T: Writable>(file: StaticString = #file,
 func testReadWriteProducesNoDiff<T: Writable>(file: StaticString = #file,
                                               line: UInt = #line,
                                               from path: Path,
-                                              initModel: (Path) throws -> T) throws {
+                                              initModel: (Path) throws -> T) async throws {
     let tmpDir = try Path.uniqueTemporary()
     defer {
         try? tmpDir.delete()
@@ -51,7 +51,7 @@ func testReadWriteProducesNoDiff<T: Writable>(file: StaticString = #file,
     let tmpPath = tmpDir + fileName
     try path.copy(tmpPath)
 
-    try tmpDir.chdir {
+    try await tmpDir.chdir {
         // Create a commit
         try checkedOutput("git", ["init"])
         try checkedOutput("git", ["add", "."])
@@ -61,9 +61,18 @@ func testReadWriteProducesNoDiff<T: Writable>(file: StaticString = #file,
         ])
 
         let object = try initModel(tmpPath)
-        try object.write(path: tmpPath, override: true)
+        try await object.write(path: tmpPath, override: true)
 
         let diff = try XCTUnwrap(try checkedOutput("git", ["diff"]))
         XCTAssertEqual(diff, "")
+    }
+}
+
+private extension Path {
+    func chdir(closure: () async throws -> ()) async throws {
+      let previous = Path.current
+      Path.current = self
+      defer { Path.current = previous }
+      try await closure()
     }
 }
