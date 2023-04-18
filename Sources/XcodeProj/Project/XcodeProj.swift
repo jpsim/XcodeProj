@@ -88,8 +88,8 @@ extension XcodeProj: Writable {
     /// - Parameter path: path to `.xcodeproj` file.
     /// - Parameter override: if project should be overridden. Default is true.
     ///   If false will throw error if project already exists at the given path.
-    public func write(path: Path, override: Bool = true) throws {
-        try write(path: path, override: override, outputSettings: PBXOutputSettings())
+    public func write(path: Path, override: Bool = true) async throws {
+        try await write(path: path, override: override, outputSettings: PBXOutputSettings())
     }
 
     /// Writes project to the given path.
@@ -98,12 +98,13 @@ extension XcodeProj: Writable {
     /// - Parameter override: if project should be overridden. Default is true.
     /// - Parameter outputSettings: Controls the writing of various files.
     ///   If false will throw error if project already exists at the given path.
-    public func write(path: Path, override: Bool = true, outputSettings: PBXOutputSettings) throws {
+    public func write(path: Path, override: Bool = true, outputSettings: PBXOutputSettings) async throws {
         try path.mkpath()
         try writeWorkspace(path: path, override: override)
-        try writePBXProj(path: path, override: override, outputSettings: outputSettings)
-        try writeSharedData(path: path, override: override)
-        try writeUserData(path: path, override: override)
+        async let a: Void = try writePBXProj(path: path, override: override, outputSettings: outputSettings)
+        async let b: Void = try writeSharedData(path: path, override: override)
+        async let c: Void = try writeUserData(path: path, override: override)
+        _ = try await (a, b, c)
     }
 
     /// Returns workspace file path relative to the given path.
